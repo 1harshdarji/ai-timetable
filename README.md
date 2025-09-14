@@ -13,8 +13,10 @@ Software requirements:
 ### Install libraries:
 1. Open the terminal or command prompt in your project folder.
 2. Run the following command to install all dependencies:
-   ```bash
+   
    pip install -r requirements.txt
+
+### How to run the project
 
    cd "path_to_your_project_folder"
    Run the application using the command python app.py
