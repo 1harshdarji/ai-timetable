@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Timetable Generator</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fb; text-align: center; }
+        .container { background: #fff; width: 400px; margin: 20px auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 8px; border: 1px solid #ccc; }
+        button { background: #3498db; color: #fff; border: none; padding: 10px 15px; border-radius: 8px; margin-top: 10px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+        #subjects-list { margin-top: 15px; text-align: left; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background: #3498db; color: white; }
+    </style>
+</head>
+<body>
+    <h1>📅 AI Timetable Generator</h1>
+    <div class="container">
+        <label>Subject Name:</label>
+        <input type="text" id="subject" placeholder="Enter subject">
+
+        <label>Teacher Name:</label>
+        <input type="text" id="teacher" placeholder="Enter teacher">
+
+        <label>Hours per Week:</label>
+        <input type="number" id="hours" placeholder="Enter hours">
+
+        <button id="add-btn">➕ Add Subject</button>
+        <button id="generate-btn">⚡ Generate Timetable</button>
+
+        <div id="subjects-list"></div>
+    </div>
+
+    <div id="timetable"></div>
+
+    <script>
+        let subjects = [];
+
+        function updateSubjectsList() {
+            let html = "<b>📘 Subjects Added:</b><br>";
+            subjects.forEach(s => {
+                html += `• ${s.subject} (${s.teacher}) - ${s.hours} hrs<br>`;
+            });
+            document.getElementById("subjects-list").innerHTML = html;
+        }
+
+        document.getElementById("add-btn").onclick = function() {
+            const subject = document.getElementById("subject").value;
+            const teacher = document.getElementById("teacher").value;
+            const hours = parseInt(document.getElementById("hours").value);
+            if (subject && teacher && hours > 0) {
+                subjects.push({subject, teacher, hours});
+                updateSubjectsList();
+                document.getElementById("subject").value = "";
+                document.getElementById("teacher").value = "";
+                document.getElementById("hours").value = "";
+            }
+        };
+
+        document.getElementById("generate-btn").onclick = function() {
+            fetch("/generate", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({subjects: subjects})
+            })
+            .then(response => response.json())
+            .then(data => {
+                let html = "<h2>🗓 Generated Timetable</h2><table><tr><th>Day</th>";
+                const timeSlots = [
+                    ["8:00", "9:00"],
+                    ["9:00", "10:00"],
+                    ["10:00", "11:00"],
+                    ["11:00", "12:00"],
+                    ["12:00", "1:00"],
+                    ["1:00", "2:00"]
+                ];
+                for (let i = 0; i < timeSlots.length; i++) {
+                    html += `<th>${timeSlots[i][0]} - ${timeSlots[i][1]}</th>`;
+                }
+
+                html += "</tr>";
+                const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                for (let day of weekdays) {
+                    html += `<tr><td><b>${day}</b></td>`;
+                    data[day].forEach(slot => {
+                        html += `<td>${slot || "-"}</td>`;
+                    });
+                    html += "</tr>";
+                }
+                html += "</table>";
+                document.getElementById("timetable").innerHTML = html;
+            });
+        };
+    </script>
+</body>
+</html>
